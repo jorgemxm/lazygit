@@ -215,6 +215,13 @@ gui:
   # One of: 'normal' (default) | 'half' | 'full'
   windowSize: normal
 
+  panelWindowSize:
+    # One of 'normal' | 'half' | 'full' default is 'full'
+    branch: 'full'
+    log: 'full'
+    stash: 'full'
+    status: 'full'
+
   # Window border style.
   # One of 'rounded' (default) | 'single' | 'double' | 'hidden'
   border: rounded
