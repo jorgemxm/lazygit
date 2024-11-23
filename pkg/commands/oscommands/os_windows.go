@@ -2,10 +2,8 @@ package oscommands
 
 func GetPlatform() *Platform {
 	return &Platform{
-		OS:                  "windows",
-		Shell:               "cmd",
-		InteractiveShell:    "cmd",
-		ShellArg:            "/c",
-		InteractiveShellArg: "",
+		OS:       "windows",
+		Shell:    "cmd",
+		ShellArg: "/c",
 	}
 }

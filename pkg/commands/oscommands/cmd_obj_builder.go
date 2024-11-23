@@ -14,8 +14,6 @@ type ICmdObjBuilder interface {
 	New(args []string) ICmdObj
 	// NewShell takes a string like `git commit` and returns an executable shell command for it e.g. `sh -c 'git commit'`
 	NewShell(commandStr string) ICmdObj
-	// Like NewShell, but uses the user's shell rather than "bash", and passes -i to it
-	NewInteractiveShell(commandStr string) ICmdObj
 	// Quote wraps a string in quotes with any necessary escaping applied. The reason for bundling this up with the other methods in this interface is that we basically always need to make use of this when creating new command objects.
 	Quote(str string) string
 }
@@ -45,23 +43,10 @@ func (self *CmdObjBuilder) NewWithEnviron(args []string, env []string) ICmdObj {
 }
 
 func (self *CmdObjBuilder) NewShell(commandStr string) ICmdObj {
-	quotedCommand := self.quotedCommandString(commandStr)
-	cmdArgs := str.ToArgv(fmt.Sprintf("%s %s %s", self.platform.Shell, self.platform.ShellArg, quotedCommand))
-
-	return self.New(cmdArgs)
-}
-
-func (self *CmdObjBuilder) NewInteractiveShell(commandStr string) ICmdObj {
-	quotedCommand := self.quotedCommandString(commandStr)
-	cmdArgs := str.ToArgv(fmt.Sprintf("%s %s %s %s", self.platform.InteractiveShell, self.platform.InteractiveShellArg, self.platform.ShellArg, quotedCommand))
-
-	return self.New(cmdArgs)
-}
-
-func (self *CmdObjBuilder) quotedCommandString(commandStr string) string {
+	var quotedCommand string
 	// Windows does not seem to like quotes around the command
 	if self.platform.OS == "windows" {
-		return strings.NewReplacer(
+		quotedCommand = strings.NewReplacer(
 			"^", "^^",
 			"&", "^&",
 			"|", "^|",
@@ -69,9 +54,13 @@ func (self *CmdObjBuilder) quotedCommandString(commandStr string) string {
 			">", "^>",
 			"%", "^%",
 		).Replace(commandStr)
+	} else {
+		quotedCommand = self.Quote(commandStr)
 	}
 
-	return self.Quote(commandStr)
+	cmdArgs := str.ToArgv(fmt.Sprintf("%s %s %s", self.platform.Shell, self.platform.ShellArg, quotedCommand))
+
+	return self.New(cmdArgs)
 }
 
 func (self *CmdObjBuilder) CloneWithNewRunner(decorate func(ICmdObjRunner) ICmdObjRunner) *CmdObjBuilder {
